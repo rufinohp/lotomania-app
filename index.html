@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Lotomania - Geração de 4 Jogos</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #fff;
+      color: #333;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    h1 {
+      font-size: 20px;
+      margin: 15px 0;
+      text-align: center;
+      color: #FF6B35;
+    }
+
+    table {
+      border-collapse: collapse;
+      margin: 10px auto;
+      width: 95%;
+      max-width: 400px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+
+    td {
+      border: 1px solid #FF6B35;
+      text-align: center;
+      padding: 6px;
+      width: 10%;
+      cursor: pointer;
+      background-color: #fff;
+      transition: background-color 0.2s ease;
+    }
+
+    td.selected {
+      background-color: #c8e6c9 !important; /* Verde claro */
+    }
+
+    .instructions {
+      text-align: center;
+      margin: 15px 10px;
+      font-size: 13px;
+      line-height: 1.5;
+      background: #FFE0B2;
+      padding: 10px;
+      border-radius: 8px;
+      max-width: 360px;
+    }
+
+    .game-display {
+      margin: 20px 10px;
+      text-align: center;
+      max-width: 360px;
+    }
+
+    .game-display h2 {
+      margin-top: 15px;
+      color: #FF6B35;
+    }
+
+    button {
+      margin-top: 10px;
+      background-color: #FF6B35;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      padding: 12px 24px;
+      font-size: 15px;
+      cursor: pointer;
+      box-shadow: 0 3px 6px rgba(0,0,0,0.2);
+    }
+
+    button:disabled {
+      background-color: #aaa;
+      cursor: not-allowed;
+    }
+  </style>
+</head>
+<body>
+  <h1>PLANILHA LOTOMANIA 10 PARA 4</h1>
+
+  <div class="instructions">
+    <div>Clique em 70 números</div>
+    <div>Pressione "Gerar Jogos"</div>
+    <div>Serão gerados 4 jogos de 50 dezenas cada</div>
+  </div>
+
+  <table id="lotomaniaTable"></table>
+
+  <div style="text-align: center;">
+    <button onclick="selectAll()">Selecionar Tudo</button>
+    <button onclick="clearSelection()">Limpar Seleção</button>
+    <button id="generateButton" disabled onclick="generateGames()">Gerar Jogos</button>
+  </div>
+
+  <div class="game-display">
+    <h2>Jogo 1</h2>
+    <div id="game1"></div>
+    <h2>Jogo 2</h2>
+    <div id="game2"></div>
+    <h2>Jogo 3</h2>
+    <div id="game3"></div>
+    <h2>Jogo 4</h2>
+    <div id="game4"></div>
+  </div>
+
+  <script>
+    const numbers = Array.from({ length: 100 }, (_, i) => (i + 1).toString().padStart(2, '0'));
+    let selectedNumbers = [];
+
+    function createTable() {
+      const table = document.getElementById('lotomaniaTable');
+      let row = document.createElement('tr');
+      numbers.forEach((number, index) => {
+        const cell = document.createElement('td');
+        cell.textContent = number;
+        cell.addEventListener('click', () => toggleSelection(cell, number));
+        row.appendChild(cell);
+        if ((index + 1) % 10 === 0) {
+          table.appendChild(row);
+          row = document.createElement('tr');
+        }
+      });
+    }
+
+    function toggleSelection(cell, number) {
+      if (cell.classList.contains('selected')) {
+        cell.classList.remove('selected');
+        selectedNumbers = selectedNumbers.filter(n => n !== number);
+      } else {
+        if (selectedNumbers.length >= 100) {
+          alert('Você só pode selecionar até 100 números.');
+          return;
+        }
+        cell.classList.add('selected');
+        selectedNumbers.push(number);
+      }
+      updateButtonState();
+    }
+
+    function updateButtonState() {
+      const button = document.getElementById('generateButton');
+      button.disabled = selectedNumbers.length !== 70;
+    }
+
+    function selectAll() {
+      clearSelection();
+      const allCells = document.querySelectorAll('td'); // Todas as células
+      allCells.forEach(cell => {
+        cell.classList.add('selected'); // Destaca visualmente
+        selectedNumbers.push(cell.textContent); // Adiciona à lista
+      });
+      updateButtonState(); // Ativa o botão "Gerar Jogos" se tiver 70
+    }
+
+    function clearSelection() {
+      selectedNumbers = [];
+      document.querySelectorAll('td').forEach(cell => cell.classList.remove('selected'));
+      updateButtonState();
+    }
+
+    function generateGames() {
+      if (selectedNumbers.length !== 70) {
+        alert('Selecione exatamente 70 números.');
+        return;
+      }
+
+      const shuffle = array => array.sort(() => Math.random() - 0.5);
+      const shuffledNumbers = shuffle([...selectedNumbers].map(Number));
+
+      // Gerar os 4 jogos (usando os primeiros 70 números selecionados)
+      const game1 = shuffledNumbers.slice(0, 50).sort((a, b) => a - b);
+      const game2 = shuffledNumbers.slice(10, 60).sort((a, b) => a - b);
+      const game3 = [...shuffledNumbers.slice(20, 70), ...shuffledNumbers.slice(0, 10)].sort((a, b) => a - b);
+      const game4 = [...shuffledNumbers.slice(30, 70), ...shuffledNumbers.slice(0, 20)].sort((a, b) => a - b);
+
+      // Exibir os jogos
+      document.getElementById('game1').innerText = `Jogo 1: ${formatNumbers(game1)}`;
+      document.getElementById('game2').innerText = `Jogo 2: ${formatNumbers(game2)}`;
+      document.getElementById('game3').innerText = `Jogo 3: ${formatNumbers(game3)}`;
+      document.getElementById('game4').innerText = `Jogo 4: ${formatNumbers(game4)}`;
+    }
+
+    function formatNumbers(numbers) {
+      return numbers.map(n => n.toString().padStart(2, '0')).join(', ');
+    }
+
+    createTable();
+  </script>
+</body>
+</html>
